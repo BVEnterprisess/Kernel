@@ -1,0 +1,8 @@
+{
+  "name": "YantrikDB for Hermes",
+  "description": "Interactive memory dashboard for YantrikDB and Hermes agent featuring 3D memory visualizer, recall debugger, and conflict resolution",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

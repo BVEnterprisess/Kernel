@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YantrikDB for Hermes</title>
+  <meta name="description" content="Interactive memory dashboard for YantrikDB and Hermes agent featuring 3D memory visualizer, recall debugger, and conflict resolution" />
+  <meta property="og:title" content="YantrikDB for Hermes" />
+  <meta property="og:description" content="Interactive memory dashboard for YantrikDB and Hermes agent featuring 3D memory visualizer, recall debugger, and conflict resolution" />
+  <link rel="icon" href="/static/assets/favicon.svg?v=yantrikdb-white-favicon-2" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/styles.css?v=hide-city-tab-021" />
+</head>
+<body>
+  <div class="grain"></div>
+  <aside class="sidebar">
+    <div class="brand">
+      <button id="brandHome" class="brand-home" type="button" aria-label="Go to overview">
+        <span class="sigil"><img src="/static/assets/favicon.svg?v=yantrikdb-white-favicon-2" alt="" /></span>
+        <span class="brand-copy">
+          <span class="brand-title">YantrikDB</span>
+          <span class="brand-sub">for Hermes</span>
+        </span>
+      </button>
+      <button id="menuToggle" class="menu-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
+    </div>
+    <nav id="nav">
+      <button class="nav-item active" data-view="overview">Overview</button>
+      <button class="nav-item" data-view="reality">Reality Projection</button>
+      <button class="nav-item" data-view="visualiser">Visualiser</button>
+      <button class="nav-item" data-view="memories">Memories</button>
+      <button class="nav-item" data-view="recall">Recall</button>
+      <button class="nav-item" data-view="skills">Learned Skills</button>
+      <button class="nav-item" data-view="conflicts">Contradictions</button>
+      <button class="nav-item" data-view="graph">Entity Graph</button>
+      <button class="nav-item" data-view="lifecycle">Lifecycle</button>
+      <button class="nav-item" data-view="ops">Maintenance</button>
+      <button class="nav-item" data-view="identity-scope">Identity &amp; Scope</button>
+      <button class="nav-item" data-view="settings">Settings</button>
+    </nav>
+    <div class="admin-status" aria-label="Admin mode status">
+      <div id="adminBadge" class="pill neutral">Admin mode disabled</div>
+    </div>
+    <div class="sidebar-credit" aria-label="Dashboard credits">
+      Built by <a href="https://github.com/wysie" target="_blank" rel="noopener noreferrer">wysie</a> · <a href="https://github.com/yantrikos/y" target="_blank" rel="noopener noreferrer">YantrikDB</a> by <a href="https://github.com/spranab" target="_blank" rel="noopener noreferrer">spranab</a>
+    </div>
+  </aside>
+
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <h1 id="pageTitle">Memory Operations</h1>
+        <div id="scopeBar" class="scope-bar" aria-live="polite">
+          <label class="scope-kicker" for="scopeSelect">Memory scope</label>
+          <select id="scopeSelect" aria-label="Memory scope"></select>
+          <span id="scopeCount" class="scope-count"></span>
+          <span id="scopeLoading" class="scope-loading hidden"><i></i>Loading…</span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span id="clusterSeqBadge" class="pill seq-pill" title="Monotonic YantrikDB Cluster Sequence">Cluster Seq: 0</span>
+        <span id="backendModeBadge" class="pill neutral">Mode: embedded</span>
+      </div>
+    </header>
+
+    <section id="view-overview" class="view active">
+      <div class="grid stats" id="statsGrid"></div>
+      <div class="two-col overview-panels">
+        <div class="panel">
+          <div class="panel-head"><h2>Memory composition</h2><span class="muted">domain/source/type</span></div>
+          <div id="composition"></div>
+        </div>
+        <div class="panel recent-panel">
+          <div class="panel-head"><h2>Recent writes</h2><span class="muted">last 30 days</span></div>
+          <canvas id="recentChart" height="190"></canvas>
+          <div id="recentSummary" class="recent-summary" aria-label="Recent write summary"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Namespaces & profile boundaries</h2><span class="muted">detect accidental sharing</span></div>
+        <div id="namespaceTable" class="table-wrap"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Causal Mutation Audit Trail</h2>
+            <span class="muted">Real monotonically tracked mutations with resulting cluster sequences</span>
+          </div>
+          <span id="overviewAuditSeq" class="pill seq-pill">Seq: 0</span>
+        </div>
+        <div id="overviewAuditTrail" class="table-wrap"></div>
+      </div>
+    </section>
+
+    <section id="view-reality" class="view">
+      <div class="identity-hero panel">
+        <div>
+          <div class="label">System State Projection</div>
+          <h2>Live Operational Reality</h2>
+          <p class="page-copy">A strict projection of authoritative YantrikDB engine state, event evidence, monotonic cluster sequence, authorized action space, and causal mutation audit chain.</p>
+          <div class="meta-row mt-2">
+            <span id="realityBackendPill" class="pill good">Mode: Embedded</span>
+            <span id="realitySeqPill" class="pill seq-pill">Observed Sequence: 0</span>
+            <span id="realityAdminPill" class="pill neutral">Admin: Disabled</span>
+            <span id="realityHealthPill" class="pill good">Health: OK</span>
+          </div>
+        </div>
+        <div class="identity-summary">
+          <div class="scope-stat-card">
+            <span>Epistemic Rule</span>
+            <strong style="font-size: 1.1rem; color: #a7f3d0;">EVIDENCE-BASED</strong>
+            <small>No invented certainty</small>
+          </div>
+          <div class="scope-stat-card">
+            <span>Sequence Tracking</span>
+            <strong style="font-size: 1.1rem; color: #67e8f9;">MONOTONIC</strong>
+            <small>Guaranteed causal order</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Authorized Action Space</h2>
+            <span class="muted">Real operations authorized by current backend capabilities and operational state</span>
+          </div>
+          <button id="refreshRealityBtn" class="btn secondary tiny">Refresh Reality</button>
+        </div>
+        <div id="realityActionSpaceGrid" class="action-capability-grid"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Full Causal Mutation Audit Trail</h2>
+            <span class="muted">Real-time trace of state-changing operations and cluster sequence advancements</span>
+          </div>
+          <span id="realityMutationCount" class="pill neutral">0 mutations recorded</span>
+        </div>
+        <div id="realityAuditTable" class="table-wrap"></div>
+      </div>
+    </section>
+
+    <section id="view-visualiser" class="view">
+      <div class="section-tabs visualiser-tabs" aria-label="Visualiser mode">
+        <button id="threeConstellationTab" data-three-mode="constellation" class="active">Constellation</button>
+        <button id="threeNeuralTab" data-three-mode="neural">Neural Map</button>
+      </div>
+      <div class="toolbar visualiser-toolbar">
+        <div class="visualiser-actions" aria-label="Visualiser controls">
+          <button id="threeRefresh" class="btn secondary">Refresh</button>
+          <button id="threeReset" class="btn secondary">Reset</button>
+          <button id="threePanMode" class="btn secondary">Pan</button>
+          <button id="threePause" class="btn secondary">Pause</button>
+        </div>
+        <span id="threeHelp" class="muted">Drag to rotate · Right-click/Shift+drag to pan · Wheel/pinch to zoom.</span>
+      </div>
+      <div class="visualiser-recall-card" aria-label="Recall replay controls">
+        <div class="visualiser-recall-copy">
+          <h2>Highlight recall results</h2>
+          <p>Run a recall query against the current view. Matching memories are added and highlighted in place.</p>
+        </div>
+        <div class="visualiser-recall">
+          <input id="threeRecallQuery" placeholder="Search memories to highlight…" />
+          <button id="threeRunRecall" class="btn primary">Highlight results</button>
+        </div>
+        <div id="threeReplayStatus" class="visualiser-recall-status"><strong>Ready</strong><span>Search to highlight matching memories in this view.</span></div>
+      </div>
+      <div class="three-layout">
+        <div id="threeViewport" class="three-viewport glass" aria-label="Interactive 3D YantrikDB memory visualiser">
+          <button id="threeFullscreen" class="viewport-fullscreen" aria-label="Open visualiser fullscreen" title="Fullscreen">⛶</button>
+          <button id="threeExitFullscreen" class="fullscreen-exit" aria-label="Exit fullscreen">×</button>
+          <div id="threeLabels" class="three-labels"></div>
+          <div id="threeLoading" class="visualiser-loading hidden" role="status" aria-live="polite">
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <strong>Building visualiser</strong>
+            <em>Preparing the selected memory scope…</em>
+          </div>
+          <div id="threeLegend" class="constellation-legend three-legend"><span><i class="legend-dot entity"></i>Entity/topic</span><span><i class="legend-dot memory"></i>Memory</span><span><i class="legend-line"></i>Link</span></div>
+          <aside id="threeFullscreenInspector" class="three-fullscreen-inspector" aria-live="polite" aria-label="Fullscreen selection details"></aside>
+        </div>
+        <aside id="threeInspector" class="graph-inspector glass">
+          <div class="inspector-kicker">Constellation inspector</div>
+          <h3>Nothing selected</h3>
+          <p class="muted">Pick a star, memory, or link to inspect the underlying YantrikDB source.</p>
+        </aside>
+      </div>
+      <div id="threeClusters" class="cluster-row"></div>
+    </section>
+
+    <section id="view-memories" class="view">
+      <div class="toolbar memory-toolbar">
+        <select id="memoryNamespaceFilter" aria-label="Memory namespace"></select>
+        <input id="memorySearch" placeholder="Search memories…" aria-label="Search memories" />
+        <select id="statusFilter" aria-label="Memory status"><option value="active">Active</option><option value="consolidated">Consolidated</option><option value="tombstoned">Forgotten</option><option value="all">All statuses</option></select>
+        <div class="memory-filter-actions">
+          <button id="memoryApply" class="btn secondary">Apply</button>
+          <button id="memoryReset" class="btn ghost">Reset</button>
+        </div>
+        <details id="memoryAdvancedFilters" class="memory-advanced">
+          <summary>More filters</summary>
+          <div class="memory-advanced-grid">
+            <input id="domainFilter" placeholder="Domain" aria-label="Domain" />
+            <input id="sourceFilter" placeholder="Source" aria-label="Source" />
+            <select id="sortFilter" aria-label="Sort memories"><option value="created_at">Newest first</option><option value="updated_at">Recently updated</option><option value="last_access">Recently accessed</option><option value="importance">Importance</option><option value="access_count">Access count</option></select>
+          </div>
+        </details>
+      </div>
+      <div class="split memories-split">
+        <div class="panel list-panel"><div id="memoryList" class="memory-list"></div><div id="memoryPager" class="pager"></div></div>
+      </div>
+    </section>
+
+    <section id="view-recall" class="view">
+      <div class="panel recall-panel">
+        <div class="panel-head"><h2>Recall</h2><span class="muted">Search without reinforcing memory</span></div>
+        <textarea id="recallQuery" placeholder="Ask: what should this agent remember about YantrikDB dashboards?"></textarea>
+        <div class="toolbar compact">
+          <input id="recallDomain" placeholder="domain optional" />
+          <input id="recallSource" placeholder="source optional" />
+          <label><input id="recallConsolidated" type="checkbox" /> include consolidated memories</label>
+          <label><input id="recallGraph" type="checkbox" checked /> expand entity links</label>
+          <input id="recallTopK" type="number" min="1" max="50" value="10" />
+          <button id="runRecall" class="btn primary">Run recall</button>
+        </div>
+      </div>
+      <div id="recallResults" class="recall-results"></div>
+    </section>
+
+    <section id="view-skills" class="view">
+      <div class="panel helper-card">
+        <div class="panel-head"><h2>Skill recall substrate</h2><span id="skillRecallStatus" class="muted">Checking YantrikDB skill recall…</span></div>
+        <p>DB-native procedural skills from YantrikDB: semantic search, auto-attach status, and outcome history. This is separate from regular file-based Hermes skills.</p>
+        <div id="skillRecallCards" class="stats mini-stats"></div>
+        <div id="skillRecallWarning" class="runtime-warning hidden"></div>
+        <div class="toolbar compact">
+          <input id="skillSearchQuery" placeholder="Find procedural skill…" />
+          <input id="skillSearchAppliesTo" placeholder="tag filter, e.g. python" />
+          <input id="skillSearchTopK" type="number" min="1" max="20" value="5" />
+          <button id="runSkillSearch" class="btn primary">Search skills</button>
+          <button id="loadRecentSkills" class="btn secondary">Refresh recent</button>
+        </div>
+      </div>
+      <div class="split">
+        <div class="panel list-panel"><div id="skillSearchResults" class="memory-list"></div></div>
+        <div class="panel detail-panel"><div id="skillOutcomeDetail" class="empty">Search for a skill to inspect its body and outcome ledger.</div></div>
+      </div>
+      <div class="panel helper-card">
+        <div class="panel-head"><h2>Recently surfaced skills</h2><span id="recentSkillsStatus" class="muted">Recent auto-surface cache</span></div>
+        <p>Shows the last seven days of skills the provider surfaced for follow-up. Search above queries the DB-native skill substrate directly.</p>
+      </div>
+      <div id="recentSkillsList" class="memory-list"></div>
+    </section>
+
+    <section id="view-conflicts" class="view">
+      <div class="toolbar">
+        <select id="conflictStatus"><option value="">any status</option><option value="open">open</option><option value="resolved">resolved</option><option value="dismissed">dismissed</option></select>
+        <button id="loadConflicts" class="btn secondary">Load conflicts</button>
+      </div>
+      <div class="split">
+        <div class="panel list-panel"><div id="conflictList" class="memory-list"></div></div>
+        <div class="panel detail-panel"><div id="conflictDetail" class="empty">Select a conflict to review claims and resolve with admin mode.</div></div>
+      </div>
+    </section>
+
+    <section id="view-graph" class="view">
+      <div class="panel helper-card">
+        <div class="panel-head"><h2>How to use Entity Graph</h2><span class="muted">relationship edges only</span></div>
+        <p>Search picks an entity. Open graph draws YantrikDB relationship edges for that entity and lists memories explicitly linked to it. Plain text memories do not automatically appear here unless YantrikDB has populated entity/edge rows. If this page is empty, use Recall for normal memory search.</p>
+      </div>
+      <div class="toolbar">
+        <input id="entitySearch" placeholder="Search entity…" />
+        <button id="loadEntities" class="btn secondary">Search</button>
+        <input id="graphEntity" placeholder="Entity graph root" />
+        <button id="loadGraph" class="btn primary">Open graph</button>
+      </div>
+      <div class="two-col wide-left">
+        <div class="panel"><div class="panel-head"><h2>Entity graph</h2><span id="graphMeta" class="muted"></span></div><svg id="graphSvg" viewBox="0 0 760 420"></svg></div>
+        <div class="panel"><div class="panel-head"><h2>Entities</h2><span class="muted">top mentions</span></div><div id="entityList" class="memory-list compact-list"></div></div>
+      </div>
+      <div class="panel"><div class="panel-head"><h2>Related memories</h2><span class="muted">entity evidence</span></div><div id="graphMemories" class="memory-list"></div></div>
+    </section>
+
+
+    <section id="view-lifecycle" class="view">
+      <div class="grid stats" id="lifecycleCards"></div>
+      <div class="two-col">
+      <div class="panel"><div class="panel-head"><h2>Stale memories</h2><span class="muted">Candidates for review</span></div><div id="staleList" class="memory-list"></div></div>
+      <div class="panel"><div class="panel-head"><h2>Upcoming reminders</h2><span class="muted">Time-based memories</span></div><div id="upcomingList" class="memory-list"></div></div>
+      </div>
+      <div class="two-col">
+        <div class="panel"><div class="panel-head"><h2>Patterns</h2><span class="muted">Repeated themes</span></div><div id="patternList" class="memory-list"></div></div>
+        <div class="panel"><div class="panel-head"><h2>Triggers</h2><span class="muted">Proactive signals</span></div><div id="triggerList" class="memory-list"></div></div>
+      </div>
+    </section>
+
+    <section id="view-ops" class="view">
+      <div class="maintenance-layout">
+        <div class="panel maintenance-panel">
+          <div class="panel-head"><h2>Maintenance</h2><span id="opsAdminState" class="pill neutral">Read-only</span></div>
+          <p class="page-copy">Run safe housekeeping for the selected memory scope. Keep Admin Mode off unless you are intentionally changing memory metadata.</p>
+          <div class="maintenance-scope">
+            <span>Runs on</span>
+            <strong id="opsScopeName">Current scope</strong>
+            <em id="opsScopeCount"></em>
+          </div>
+          <div class="action-list">
+          <div class="action-row">
+            <div>
+              <strong>Maintenance pass</strong>
+              <span>Consolidates duplicates, scans contradictions, and updates memory metadata.</span>
+            </div>
+            <button id="runThink" class="btn primary">Run pass</button>
+          </div>
+          <div class="action-row">
+            <div>
+              <strong>v0.6 hygiene scan</strong>
+              <span>Review open contradictions and low-usefulness recall candidates before applying cleanup.</span>
+            </div>
+            <button id="runHygieneScan" class="btn secondary">Scan</button>
+          </div>
+          <div class="action-row secondary-row">
+            <div>
+              <strong>Health check</strong>
+              <span>Refresh dashboard configuration, database path, plugin state, and namespace counts.</span>
+            </div>
+            <button id="refreshHealth" class="btn secondary">Refresh</button>
+          </div>
+          </div>
+          <div id="hygieneCards" class="stats mini-stats"></div>
+          <div id="recallFeedbackCards" class="stats mini-stats"></div>
+          <div id="hygieneList" class="memory-list compact-list"></div>
+          <details id="opsDetails" class="details-block">
+<summary>Show maintenance output</summary>
+            <pre id="opsOutput"></pre>
+          </details>
+        </div>
+        <div class="panel advanced-panel"><div class="panel-head"><h2>System health</h2><span class="muted">Advanced details</span></div><pre id="healthPayload"></pre></div>
+      </div>
+    </section>
+
+    <section id="view-identity-scope" class="view">
+      <div class="identity-hero panel">
+        <div>
+          <div class="label">Memory governance</div>
+          <h2>Identity &amp; Scope</h2>
+          <p class="page-copy">Create identities to group platform accounts under the right person. Use shared spaces for group chats or household/team memory.</p>
+          <div id="identityScopingStatus" class="scope-status-row" aria-label="Memory scoping status"></div>
+        </div>
+        <div id="identityScopeSummary" class="identity-summary" aria-label="Identity and scope summary"></div>
+      </div>
+      <div class="scope-grid">
+        <div class="panel scope-panel">
+          <div class="panel-head"><h2>People</h2><span class="muted">who the accounts belong to</span></div>
+          <form id="identityForm" class="scope-form" aria-label="Add identity">
+            <input id="identityId" placeholder="Short ID, e.g. yc" autocomplete="off" aria-label="Person short ID" />
+            <input id="identityLabel" placeholder="Display name, e.g. Yuan Chin" autocomplete="off" aria-label="Person display name" />
+            <input id="identityPrivateScope" placeholder="Advanced owner ID, auto-filled if blank" autocomplete="off" aria-label="Advanced owner ID" />
+            <button id="identitySubmit" class="btn secondary" type="submit">Save person</button>
+          </form>
+          <div id="identityList" class="scope-list"></div>
+        </div>
+        <div class="panel scope-panel">
+          <div class="panel-head"><h2>Actors</h2><span class="muted">platform accounts</span></div>
+          <p class="panel-note">Platform accounts mapped to people. Change the identity inline, then save that row.</p>
+          <div class="actor-filter-row">
+            <label for="actorIdentityFilter">Identity</label>
+            <select id="actorIdentityFilter" aria-label="Filter actors by identity"></select>
+          </div>
+          <div id="actorList" class="scope-list"></div>
+          <details class="details-block add-actor-details">
+            <summary>Add actor mapping manually</summary>
+            <form id="actorForm" class="scope-form subtle-form" aria-label="Map actor to identity">
+              <input id="actorPlatform" placeholder="Platform, e.g. whatsapp" autocomplete="off" aria-label="Actor platform" />
+              <input id="actorId" placeholder="Actor ID, e.g. 191...@lid" autocomplete="off" aria-label="Actor ID" />
+              <select id="actorIdentity" aria-label="Actor identity"></select>
+              <button class="btn secondary" type="submit">Add actor mapping</button>
+            </form>
+          </details>
+        </div>
+        <div class="panel scope-panel">
+          <div class="panel-head"><h2>Shared spaces</h2><span class="muted">group memory</span></div>
+          <form id="spaceForm" class="scope-form" aria-label="Add shared space">
+            <input id="spaceId" placeholder="Space ID, e.g. household" autocomplete="off" aria-label="Shared space ID" />
+            <input id="spaceLabel" placeholder="Label, e.g. Household" autocomplete="off" aria-label="Shared space label" />
+            <input id="spaceScope" placeholder="Advanced storage ID, auto-filled if blank" autocomplete="off" aria-label="Advanced shared-space storage ID" />
+            <div id="spaceMembersChecklist" class="checkbox-list" aria-label="Shared space members"></div>
+            <button class="btn secondary" type="submit">Add shared space</button>
+          </form>
+          <div id="spaceList" class="scope-list"></div>
+        </div>
+        <div class="panel scope-panel">
+          <div class="panel-head"><h2>Chat routing</h2><span class="muted">which chats use shared memory</span></div>
+          <form id="conversationForm" class="scope-form" aria-label="Route chat">
+            <select id="conversationPlatform" aria-label="Chat platform"></select>
+            <input id="conversationId" list="conversationIdOptions" placeholder="Chat ID" autocomplete="off" aria-label="Chat ID" />
+            <datalist id="conversationIdOptions"></datalist>
+            <select id="conversationScope" aria-label="Chat shared space"></select>
+            <button class="btn secondary" type="submit">Save chat route</button>
+          </form>
+          <div id="conversationList" class="scope-list"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Namespace coverage</h2><span class="muted">who each memory bucket belongs to</span></div>
+        <div id="identityNamespaceTable" class="coverage-wrap"></div>
+      </div>
+      <div class="panel advanced-panel">
+        <div class="panel-head"><h2>Advanced config</h2><span class="muted">optional JSON</span></div>
+        <p class="page-copy">Use the page controls for normal edits. This JSON is only for bulk review or advanced fixes. Saving requires Admin Mode.</p>
+        <details class="details-block">
+          <summary>Show raw registry JSON</summary>
+          <textarea id="identityScopeJson" class="json-editor" spellcheck="false" aria-label="Identity and scope JSON"></textarea>
+          <div class="toolbar compact">
+            <button id="reloadIdentityScope" class="btn secondary" type="button">Reload</button>
+            <button id="saveIdentityScope" class="btn primary" type="button">Save registry</button>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="view-settings" class="view">
+      <div class="settings-layout">
+        <div class="panel settings-panel">
+          <div class="panel-head"><h2>Settings</h2><span class="muted">Local controls</span></div>
+          <div class="setting-list">
+            <div class="setting-section-label">Memory scoping</div>
+            <label class="setting-row switch-row">
+              <span><strong>Save memories separately per person</strong><small>YC, Sheryl, and other people get their own memory buckets.</small><code class="config-name">owner_scoping</code></span>
+              <span class="switch-control-wrap"><input id="ownerScopingToggle" type="checkbox" /><span class="switch-control" aria-hidden="true"></span></span>
+            </label>
+            <label class="setting-row switch-row">
+              <span><strong>Also search older shared memories</strong><small>Include the old shared memory bucket so older memories still show up after per-person scoping.</small><code class="config-name">include_base_namespace_recall</code></span>
+              <span class="switch-control-wrap"><input id="includeBaseRecallToggle" type="checkbox" /><span class="switch-control" aria-hidden="true"></span></span>
+            </label>
+            <label class="setting-row switch-row">
+              <span><strong>Also search old platform-account memories</strong><small>Include memories saved under old WhatsApp/Telegram account buckets before they were grouped into people.</small><code class="config-name">include_legacy_actor_namespace_recall</code></span>
+              <span class="switch-control-wrap"><input id="includeActorRecallToggle" type="checkbox" /><span class="switch-control" aria-hidden="true"></span></span>
+            </label>
+            <div class="setting-row compact-number-row">
+              <div><strong>Recall result count</strong><small>Default number of memories to retrieve for recall.</small><code class="config-name">top_k</code></div>
+              <input id="topKSetting" type="number" min="1" max="50" aria-label="Recall result count" />
+              <button id="saveMemoryScoping" class="btn primary" type="button">Save memory settings</button>
+            </div>
+            <div class="setting-section-label">v0.6 recall tuning & hygiene</div>
+            <label class="setting-row switch-row">
+              <span><strong>Self-tuning recall</strong><small>Allow explicit reinforcement feedback to boost memories that proved useful.</small><code class="config-name">self_tuning_recall</code></span>
+              <span class="switch-control-wrap"><input id="selfTuningRecallToggle" type="checkbox" /><span class="switch-control" aria-hidden="true"></span></span>
+            </label>
+            <div class="setting-row compact-number-row">
+              <div><strong>Max reinforcement boost</strong><small>Cap for per-memory ranking lift from useful recall feedback.</small><code class="config-name">self_tuning_max_boost</code></div>
+              <input id="selfTuningMaxBoost" type="number" min="0" max="1" step="0.01" aria-label="Self-tuning max boost" />
+            </div>
+            <label class="setting-row switch-row">
+              <span><strong>Surface hygiene candidates</strong><small>Show low-usefulness recall candidates in the agent prompt for cleanup review.</small><code class="config-name">surface_hygiene</code></span>
+              <span class="switch-control-wrap"><input id="surfaceHygieneToggle" type="checkbox" /><span class="switch-control" aria-hidden="true"></span></span>
+            </label>
+            <div class="setting-row compact-number-row">
+              <div><strong>Hygiene candidates shown</strong><small>Maximum low-usefulness candidates surfaced to the agent.</small><code class="config-name">hygiene_max_surfaced</code></div>
+              <input id="hygieneMaxSurfaced" type="number" min="1" max="50" aria-label="Hygiene candidates shown" />
+            </div>
+            <div class="setting-section-label">Dashboard access</div>
+            <label class="setting-row switch-row">
+              <span><strong>Admin Mode</strong><small>Allow memory-changing actions such as maintenance, conflict resolution, and forgetting memories.</small></span>
+              <span class="switch-control-wrap"><input id="adminModeToggle" type="checkbox" /><span class="switch-control" aria-hidden="true"></span></span>
+            </label>
+            <div class="setting-row password-row">
+              <div><strong>Dashboard password</strong><small id="passwordState">Password disabled</small></div>
+              <input id="dashboardPassword" type="password" placeholder="New password" autocomplete="new-password" aria-label="New dashboard password" />
+              <div class="settings-actions">
+                <button id="savePassword" class="btn primary">Save password</button>
+                <button id="disablePassword" class="btn secondary">Disable</button>
+              </div>
+            </div>
+            <div class="setting-row export-row">
+              <div><strong>Export active memories</strong><small>Download the current memory scope for backup or inspection.</small></div>
+              <a id="settingsExportLink" class="btn secondary" href="#">Export <span class="btn-sub">JSONL</span></a>
+            </div>
+            <div class="setting-row session-row">
+              <div><strong>Session</strong><small>Clear this browser’s dashboard login session.</small></div>
+              <button id="logoutBtn" class="btn secondary">Log out</button>
+            </div>
+          </div>
+        </div>
+        <div class="panel advanced-panel settings-side">
+          <div class="panel-head"><h2>Runtime details</h2><span class="muted">Advanced</span></div>
+          <details class="details-block" open>
+            <summary>Show dashboard runtime</summary>
+            <div id="settingsRuntime" class="diag-grid"></div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="memoryDrawer" class="drawer hidden" role="dialog" aria-modal="true" aria-label="Memory detail">
+    <button id="closeMemoryDrawer" aria-label="Close detail">×</button>
+    <div class="drawer-title">Memory detail</div>
+    <div id="memoryDrawerBody" class="drawer-body html-detail"></div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <div id="loginModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Dashboard login">
+    <div class="modal-card">
+      <div class="inspector-kicker">YantrikDB</div>
+      <h3>Enter dashboard password</h3>
+      <p class="muted">This dashboard is password protected.</p>
+      <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password" />
+      <div class="modal-actions"><button id="loginBtn" class="btn primary">Unlock</button></div>
+    </div>
+  </div>
+  <div id="confirmModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Confirm action">
+    <div class="modal-card">
+      <div class="inspector-kicker">Confirm</div>
+      <h3 id="confirmTitle">Confirm action</h3>
+      <p id="confirmMessage" class="muted"></p>
+      <div class="modal-actions"><button id="confirmCancel" class="btn secondary">Cancel</button><button id="confirmOk" class="btn primary">Continue</button></div>
+    </div>
+  </div>
+  <script src="/static/app.js?v=hide-city-tab-021"></script>
+</body>
+</html>

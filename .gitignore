@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Virtualenvs
+.venv/
+venv/
+
+# Local env / secrets
+.env
+.env.*
+!.env.example
+
+# Local databases and exports
+*.db
+*.sqlite
+*.sqlite3
+*.jsonl
+*.ndjson
+*.csv
+
+# Logs / process files
+*.log
+*.pid
+.run/
+.DS_Store
+
+# Node / frontend build
+node_modules/
+
+# Screenshots, critique snapshots, or private debug artifacts
+.impeccable/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.mp4
+
+# README gallery screenshots are synthetic mock data and safe to publish
+!docs/screenshots/*.png
